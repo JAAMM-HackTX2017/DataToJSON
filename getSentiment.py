@@ -1,20 +1,3 @@
-
-#request sentiment api
-#POST https://westcentralus.api.cognitive.microsoft.com/text/analytics/v2.0/sentiment HTTP/1.1
-#Host: westcentralus.api.cognitive.microsoft.com
-#Content-Type: application/json
-#Ocp-Apim-Subscription-Key: 1dab9d779d2a4d67aa1144b1fd298926
-
-#{
-#  "documents": [
-#    {
-#      "language": "string",
-#      "id": "string",
-#      "text": "string"
-#   }
-#  ]
-#}
-
 # -*- coding: utf-8 -*-
 
 import httplib, urllib
@@ -36,25 +19,54 @@ accessKey = '6067bebac38e41f8a603221788faa59f'
 # NOTE: Free trial access keys are generated in the westcentralus region, so if you are using
 # a free trial access key, you should not need to change this region.
 url = 'westcentralus.api.cognitive.microsoft.com'
-path = '/text/analytics/v2.0/sentiment'
+path = '/text/analytics/v2.0/keyPhrases'
 
-def GetSentiment (documents):
+url2 = 'westcentralus.api.cognitive.microsoft.com'
+path2 = '/text/analytics/v2.0/sentiment'
+
+def GetKeyPhrases (documents):
     "Gets the sentiments for a set of documents and returns the information."
 
     headers = {'Ocp-Apim-Subscription-Key': accessKey}
-    conn = httplib.HTTPSConnection(url)
+    conn = httplib.HTTPSConnection (url)
+    body = json.dumps (documents)
+    conn.request ("POST", path, body, headers)
+    response = conn.getresponse ()
+    return response.read ()
+
+def GetSentiment (documents):
+    "Gets the sentiments for a set of documents and returns the information."
+    headers = {'Ocp-Apim-Subscription-Key': accessKey}
+    conn = httplib.HTTPSConnection(url2)
     body = json.dumps (documents)
     conn.request ("POST", path, body, headers)
     response = conn.getresponse()
     return response.read()
 
 documents = { 'documents': [
-    { 'id': '1', 'language': 'en', 'text': 'i need help' },
-    { 'id': '2', 'language': 'en', 'text': 'Mason is cool' }
+    { 'id': '1', 'language': 'en', 'text': 'My house flooded'},
+    { 'id': '2', 'language': 'en', 'text': 'I need help'},
+    { 'id': '3', 'language': 'en', 'text': 'my family needs help in the downtown Houston area'}
 ]}
 
-
 print 'Please wait a moment for the results to appear.\n'
-result = GetSentiment(documents)
-#print (json.dumps(json.loads(result), indent=4))
+
+#getphrases gives originally a string, json.loads(x) makes value into a dictionary to be able to iterate through
+result = json.loads(GetKeyPhrases(documents))
+print "going through 'documents'..."
+print json.loads(GetSentiment(documents))
+
+for dictionary in result['documents']:
+    for word in dictionary['keyPhrases']:
+        print word
+        wordDict = {'documents': [
+            {'id': '1', 'language': 'en', 'text': word}
+        ]}
+        res = GetSentiment(wordDict)
+        print res
+
+print('finished printing')
+
+print("printing result")
 print(result)
+#print (json.dumps(json.loads(result), indent=4))
